@@ -79,11 +79,6 @@ print_status "Docker and Docker Compose are installed."
 print_status "Creating external directories for persistent data..."
 ./setup-external-dirs.sh
 
-# Create Docker networks
-print_status "Creating Docker networks..."
-docker network create live_wordpress_network || true
-docker network create staging_wordpress_network || true
-
 # Make all scripts executable
 print_status "Setting executable permissions..."
 chmod +x init-wordpress-live.sh init-wordpress-staging.sh backup-live.sh backup-staging.sh setup-ssl.sh monitor.sh health-check-live.sh health-check-staging.sh restart-services.sh setup-external-dirs.sh
@@ -95,73 +90,45 @@ docker build -t wordpress-php:7.4.33 -f Dockerfile.php . || {
     exit 1
 }
 
-# Start Proxy services
-print_status "Starting Nginx Proxy services..."
-docker-compose -f docker-compose.proxy.yml down --remove-orphans || true
-docker-compose -f docker-compose.proxy.yml up -d --build || {
-    print_error "Failed to start Proxy services"
-    exit 1
-}
-
 # Start Live services
 print_status "Starting Live WordPress services..."
-docker-compose -f docker-compose.live.yml down --remove-orphans || true
 docker-compose -f docker-compose.live.yml up -d --build || {
     print_error "Failed to start Live services"
+    print_status "Displaying Live services logs:"
+    docker-compose -f docker-compose.live.yml logs
     exit 1
 }
 
 # Start Staging services
 print_status "Starting Staging WordPress services..."
-docker-compose -f docker-compose.staging.yml down --remove-orphans || true
 docker-compose -f docker-compose.staging.yml up -d --build || {
     print_error "Failed to start Staging services"
+    print_status "Displaying Staging services logs:"
+    docker-compose -f docker-compose.staging.yml logs
     exit 1
 }
 
 # Wait for services to be running before checking database
 print_status "Waiting for database containers to start..."
-sleep 10
+sleep 30
 
-# Wait for containers to be created (not just started)
-print_status "Waiting for containers to be created..."
-for i in {1..30}; do
-    if docker ps -a | grep -q live_wordpress_db && docker ps -a | grep -q staging_wordpress_db; then
-        print_status "Containers created successfully"
-        break
-    fi
-    sleep 2
-done
-
-# Check if containers are running (allow time for initialization)
-print_status "Checking database container status..."
-for i in {1..20}; do
-    LIVE_STATUS=$(docker inspect -f '{{.State.Status}}' live_wordpress_db 2>/dev/null || echo "not_found")
-    STAGING_STATUS=$(docker inspect -f '{{.State.Status}}' staging_wordpress_db 2>/dev/null || echo "not_found")
-    
-    if [ "$LIVE_STATUS" = "running" ] && [ "$STAGING_STATUS" = "running" ]; then
-        print_status "Both database containers are running"
-        break
-    elif [ "$LIVE_STATUS" = "exited" ] || [ "$STAGING_STATUS" = "exited" ]; then
-        print_error "Database container(s) exited unexpectedly"
-        [ "$LIVE_STATUS" = "exited" ] && docker logs live_wordpress_db
-        [ "$STAGING_STATUS" = "exited" ] && docker logs staging_wordpress_db
-        exit 1
-    fi
-    
-    echo "Waiting for containers to start (attempt $i/20)..."
-    sleep 3
-done
-
-if [ "$LIVE_STATUS" != "running" ]; then
-    print_error "Live database container failed to start"
-    docker logs live_wordpress_db 2>&1 || echo "No logs available"
+# Check if containers are running using docker-compose instead of docker ps
+print_status "Checking if database containers are running..."
+if ! docker-compose -f docker-compose.live.yml ps | grep -q "live_wordpress_db"; then
+    print_error "Live database container is not running"
+    print_status "Displaying Live services status:"
+    docker-compose -f docker-compose.live.yml ps
+    print_status "Displaying Live database logs:"
+    docker-compose -f docker-compose.live.yml logs live-db
     exit 1
 fi
 
-if [ "$STAGING_STATUS" != "running" ]; then
-    print_error "Staging database container failed to start"
-    docker logs staging_wordpress_db 2>&1 || echo "No logs available"
+if ! docker-compose -f docker-compose.staging.yml ps | grep -q "staging_wordpress_db"; then
+    print_error "Staging database container is not running"
+    print_status "Displaying Staging services status:"
+    docker-compose -f docker-compose.staging.yml ps
+    print_status "Displaying Staging database logs:"
+    docker-compose -f docker-compose.staging.yml logs staging-db
     exit 1
 fi
 

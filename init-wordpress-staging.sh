@@ -1,85 +1,77 @@
 #!/bin/bash
 
-# Staging WordPress Initialization Script for Acme Revival
-# Server: 199.19.74.239, Domain: acmerevival.com
-# All data stored in external directories for persistence after project deletion
+# Initialize WordPress for Staging Environment
+# This script is executed inside the staging-php-fpm container
+
 set -e
 
-echo "Starting Staging WordPress initialization..."
+echo "Initializing WordPress for Staging Environment..."
 
-# Wait for database to be ready
-echo "Waiting for staging database to be ready..."
-until mysql -h staging-db -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" -e "SELECT 1;" > /dev/null 2>&1; do
-    echo "Waiting for staging database connection..."
-    sleep 5
-done
-
-echo "Staging database is ready!"
+# Wait a bit more for database to be fully ready
+sleep 10
 
 # Check if WordPress is already installed
-if [ ! -f /var/www/html/wp-config.php ]; then
-    echo "Installing Staging WordPress..."
-    
-    # Download WordPress if not already present
-    if [ ! -f /usr/src/wordpress.tar.gz ]; then
-        echo "Downloading WordPress..."
-        curl -o /usr/src/wordpress.tar.gz -SL https://wordpress.org/wordpress-6.8.3.tar.gz
-    fi
-    
-    # Extract WordPress
-    echo "Extracting WordPress..."
-    tar -xzf /usr/src/wordpress.tar.gz -C /tmp/
-    cp -a /tmp/wordpress/. /var/www/html/
-    
-    # Set proper permissions
-    chown -R www-data:www-data /var/www/html
-    chmod -R 755 /var/www/html
-    
-    # Create wp-config.php
-    echo "Creating wp-config.php..."
-    wp config create \
-        --dbname="$STAGING_DB_NAME" \
-        --dbuser="$STAGING_DB_USER" \
-        --dbpass="$STAGING_DB_PASSWORD" \
-        --dbhost="staging-db:3306" \
-        --allow-root \
-        --path=/var/www/html
-    
-    # Install WordPress
-    echo "Installing WordPress..."
-    wp core install \
-        --url="$STAGING_SITE_URL" \
-        --title="$STAGING_WP_TITLE" \
-        --admin_user="$STAGING_WP_USER" \
-        --admin_password="$STAGING_WP_PASSWORD" \
-        --admin_email="$STAGING_WP_EMAIL" \
-        --allow-root \
-        --path=/var/www/html
-    
-    # Set up basic WordPress configuration
-    wp config set WP_DEBUG true --raw --allow-root --path=/var/www/html
-    wp config set WP_DEBUG_LOG true --raw --allow-root --path=/var/www/html
-    wp config set WP_DEBUG_DISPLAY false --raw --allow-root --path=/var/www/html
-    
-    # Install and activate Redis Object Cache
-    wp plugin install redis-cache --activate --allow-root --path=/var/www/html
-    wp plugin update --all --allow-root --path=/var/www/html
-    
-    # Install a default theme if needed
-    wp theme install twentytwentyfour --activate --allow-root --path=/var/www/html
-    
-    echo "Staging WordPress installation completed!"
-else
-    echo "Staging WordPress is already installed."
+if [ -f "/var/www/html/wp-config.php" ]; then
+    echo "WordPress is already installed in Staging environment."
+    exit 0
 fi
 
-# Ensure proper file permissions
-chown -R www-data:www-data /var/www/html
-chmod -R 755 /var/www/html
-find /var/www/html -type f -exec chmod 644 {} \;
-find /var/www/html -type d -exec chmod 755 {} \;
+# Download WordPress
+if [ ! -f "/var/www/html/wp-config.php" ]; then
+    echo "Downloading WordPress..."
+    wp core download --allow-root --path=/var/www/html
+fi
 
-# Secure wp-config.php
-chmod 644 /var/www/html/wp-config.php
+# Create wp-config.php
+echo "Creating wp-config.php for Staging environment..."
+wp config create --allow-root \
+    --path=/var/www/html \
+    --dbname="${STAGING_DB_NAME}" \
+    --dbuser="${STAGING_DB_USER}" \
+    --dbpass="${STAGING_DB_PASSWORD}" \
+    --dbhost="staging-db:3306" \
+    --dbprefix="wp_" \
+    --force
 
-echo "Staging WordPress initialization completed!"
+# Add security keys
+wp config shuffle-salts --allow-root --path=/var/www/html
+
+# Add Redis configuration
+echo "Adding Redis configuration..."
+wp config set WP_CACHE true --allow-root --path=/var/www/html
+wp config set WP_REDIS_HOST redis --allow-root --path=/var/www/html
+wp config set WP_REDIS_PORT 6379 --allow-root --path=/var/www/html
+
+# Install WordPress
+echo "Installing WordPress for Staging environment..."
+wp core install --allow-root \
+    --path=/var/www/html \
+    --url="http://199.19.74.239:8080" \
+    --title="Acme Revival - Staging" \
+    --admin_user="admin" \
+    --admin_password="SecureStagingPassword123!" \
+    --admin_email="staging@acmerevival.com" \
+    --skip-email
+
+# Set site URL
+wp option update siteurl "http://199.19.74.239:8080" --allow-root --path=/var/www/html
+wp option update home "http://199.19.74.239:8080" --allow-root --path=/var/www/html
+
+# Set timezone
+wp option update timezone_string "America/New_York" --allow-root --path=/var/www/html
+
+# Update permalink structure
+wp rewrite structure '/%postname%/' --allow-root --path=/var/www/html
+
+# Install and activate recommended plugins
+wp plugin install redis-cache --allow-root --path=/var/www/html --activate
+wp plugin install wordpress-seo --allow-root --path=/var/www/html --activate
+wp plugin install wp-optimize --allow-root --path=/var/www/html --activate
+
+# Optimize database
+wp db optimize --allow-root --path=/var/www/html
+
+# Clean up
+wp cache flush --allow-root --path=/var/www/html
+
+echo "WordPress Staging environment initialized successfully!"
