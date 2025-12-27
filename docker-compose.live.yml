@@ -52,8 +52,44 @@ services:
       - no-new-privileges:true
     depends_on:
       - live-db
+      - live-redis
     healthcheck:
       test: ["CMD", "php", "-r", "echo 'PHP-FPM is running';"]
+      timeout: 20s
+      retries: 10
+
+  # Live phpMyAdmin
+  live-phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: live_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:80"  # Bind to localhost only for security
+    environment:
+      - PMA_HOST=live-db
+      - PMA_USER=${LIVE_DB_USER}
+      - PMA_PASSWORD=${LIVE_DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${LIVE_DB_ROOT_PASSWORD}
+      - PMA_ABSOLUTE_URI=http://199.19.74.239:8081  # Specify absolute URI for security
+    networks:
+      - live_network
+    depends_on:
+      - live-db
+    security_opt:
+      - no-new-privileges:true
+
+  # Redis for caching
+  live-redis:
+    image: redis:alpine
+    container_name: live_redis
+    restart: unless-stopped
+    volumes:
+      - live_redis_data:/data
+    networks:
+      - live_network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       timeout: 20s
       retries: 10
 
@@ -62,8 +98,9 @@ volumes:
     name: live_wordpress_db_data
   live_wordpress_data:
     name: live_wordpress_html_data
+  live_redis_data:
+    name: live_wordpress_redis_data
 
 networks:
   live_network:
     name: live_wordpress_network
-    external: true

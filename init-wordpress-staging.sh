@@ -39,14 +39,14 @@ wp config shuffle-salts --allow-root --path=/var/www/html
 # Add Redis configuration
 echo "Adding Redis configuration..."
 wp config set WP_CACHE true --allow-root --path=/var/www/html
-wp config set WP_REDIS_HOST redis --allow-root --path=/var/www/html
+wp config set WP_REDIS_HOST staging-redis --allow-root --path=/var/www/html
 wp config set WP_REDIS_PORT 6379 --allow-root --path=/var/www/html
 
 # Install WordPress
 echo "Installing WordPress for Staging environment..."
 wp core install --allow-root \
     --path=/var/www/html \
-    --url="http://199.19.74.239:8080" \
+    --url="http://199.19.74.239" \
     --title="Acme Revival - Staging" \
     --admin_user="admin" \
     --admin_password="SecureStagingPassword123!" \
@@ -54,8 +54,8 @@ wp core install --allow-root \
     --skip-email
 
 # Set site URL
-wp option update siteurl "http://199.19.74.239:8080" --allow-root --path=/var/www/html
-wp option update home "http://199.19.74.239:8080" --allow-root --path=/var/www/html
+wp option update siteurl "http://199.19.74.239" --allow-root --path=/var/www/html
+wp option update home "http://199.19.74.239" --allow-root --path=/var/www/html
 
 # Set timezone
 wp option update timezone_string "America/New_York" --allow-root --path=/var/www/html

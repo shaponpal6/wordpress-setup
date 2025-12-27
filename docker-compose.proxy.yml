@@ -9,11 +9,11 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./ssl:/etc/ssl/certs
-      - live_wordpress_data:/var/www/html/live
-      - staging_wordpress_data:/var/www/html/staging
+      - /var/www/wordpress-live:/var/www/html/live
+      - /var/www/wordpress-staging:/var/www/html/staging
       - ./logs/nginx:/var/log/nginx
     networks:
       - live_network
@@ -37,18 +37,10 @@ services:
       - staging_network
 
 
-volumes:
-  live_wordpress_data:
-    external: true
-    name: live_wordpress_html_data
-  staging_wordpress_data:
-    external: true
-    name: staging_wordpress_html_data
-
 networks:
   live_network:
-    external: true
     name: live_wordpress_network
-  staging_network:
     external: true
+  staging_network:
     name: staging_wordpress_network
+    external: true

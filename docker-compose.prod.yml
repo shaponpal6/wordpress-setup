@@ -1,14 +1,7 @@
 version: '3.8'
 
-# This is the base configuration, see docker-compose.live.yml and docker-compose.staging.yml for specific environments
-volumes:
-  db_data:
-  wordpress_data:
-  redis_data:
-
-networks:
-  wordpress:
-    driver: bridge
+# Production WordPress Stack with MariaDB and phpMyAdmin
+# For single environment deployment (either live or staging)
 
 services:
   # MariaDB Database
@@ -18,19 +11,23 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      - MYSQL_DATABASE=${DB_NAME}
-      - MYSQL_USER=${DB_USER}
-      - MYSQL_PASSWORD=${DB_PASSWORD}
-      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${LIVE_DB_NAME}
+      - MYSQL_USER=${LIVE_DB_USER}
+      - MYSQL_PASSWORD=${LIVE_DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${LIVE_DB_ROOT_PASSWORD}
     volumes:
       - db_data:/var/lib/mysql
       - ./config/mariadb:/etc/mysql/conf.d
     networks:
       - wordpress
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "--password=$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
       retries: 10
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
 
   # PHP-FPM with PHP 7.4.33
   php-fpm:
@@ -42,9 +39,9 @@ services:
     env_file: .env
     environment:
       - WORDPRESS_DB_HOST=db:3306
-      - WORDPRESS_DB_NAME=${DB_NAME}
-      - WORDPRESS_DB_USER=${DB_USER}
-      - WORDPRESS_DB_PASSWORD=${DB_PASSWORD}
+      - WORDPRESS_DB_NAME=${LIVE_DB_NAME}
+      - WORDPRESS_DB_USER=${LIVE_DB_USER}
+      - WORDPRESS_DB_PASSWORD=${LIVE_DB_PASSWORD}
     volumes:
       - wordpress_data:/var/www/html
       - ./wp-content:/var/www/html/wp-content
@@ -59,6 +56,8 @@ services:
       test: ["CMD", "php", "-r", "echo 'PHP-FPM is running';"]
       timeout: 20s
       retries: 10
+    security_opt:
+      - no-new-privileges:true
 
   # Nginx Web Server
   nginx:
@@ -83,6 +82,8 @@ services:
       test: ["CMD", "service", "nginx", "status"]
       timeout: 20s
       retries: 10
+    security_opt:
+      - no-new-privileges:true
 
   # Redis for caching
   redis:
@@ -99,17 +100,35 @@ services:
       timeout: 20s
       retries: 10
 
-  # Adminer for database management
-  adminer:
-    image: adminer
-    container_name: wordpress_adminer
+  # phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: wordpress_phpmyadmin
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:80"  # Bind to localhost only for security
     environment:
-      - ADMINER_DEFAULT_SERVER=db
-      - ADMINER_DESIGN=nette
+      - PMA_HOST=db
+      - PMA_USER=${LIVE_DB_USER}
+      - PMA_PASSWORD=${LIVE_DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${LIVE_DB_ROOT_PASSWORD}
+      - PMA_ABSOLUTE_URI=http://199.19.74.239:8080  # Specify absolute URI for security
     networks:
       - wordpress
     depends_on:
       - db
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  db_data:
+    name: wordpress_db_data
+  wordpress_data:
+    name: wordpress_html_data
+  redis_data:
+    name: wordpress_redis_data
+
+networks:
+  wordpress:
+    name: wordpress_network
+    driver: bridge

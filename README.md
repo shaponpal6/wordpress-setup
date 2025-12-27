@@ -1,166 +1,143 @@
-# Acme Revival WordPress Production Setup
+# Production WordPress Docker Setup
 
-Complete production-ready WordPress setup with **completely separated** live and staging environments for Acme Revival project.
+This repository contains a complete production-ready WordPress setup with both live and staging environments using Docker Compose.
 
 ## Features
 
-- **Complete Environment Separation**: Live and staging environments are completely isolated
-- **External Data Storage**: All data stored outside project folder for persistence
-- **Production Ready**: Optimized for security and performance
-- **Complete Monitoring**: Logging, health checks, and monitoring tools
-- **Database Management**: Separate phpMyAdmin for each environment
-- **SSL Support**: Let's Encrypt integration
-- **Backup & Restore**: Automated backup and restore capabilities
+- **WordPress 6.8.3** with **PHP 7.4.33**
+- **MariaDB 11.4.9** database
+- **phpMyAdmin** for database management
+- **Redis** for caching
+- **Nginx** as reverse proxy
+- **Separate live and staging environments**
+- **Persistent storage** outside project directory
+- **Health checks** for all services
+- **Security optimizations**
 
-## Complete Environment Separation
+## Prerequisites
+
+- Docker and Docker Compose
+- At least 4GB RAM allocated to Docker
+- Linux/macOS system
+
+## Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone <repository-url>
+   cd wordpress-setup
+   ```
+
+2. **Install Docker** (if not already installed):
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop)
+
+3. **Make scripts executable:**
+   ```bash
+   chmod +x *.sh
+   ```
+
+4. **Create external directories:**
+   ```bash
+   ./setup-external-dirs.sh
+   ```
+
+5. **Start the setup:**
+   ```bash
+   ./setup.sh
+   ```
+
+## Directory Structure
+
+All persistent data is stored outside the project directory:
+
+- `/etc/wordpress/` - Configuration files
+- `/var/www/wordpress-live/` - Live WordPress files
+- `/var/www/wordpress-staging/` - Staging WordPress files
+- `/var/log/wordpress/` - Log files
+
+## Services
 
 ### Live Environment
-- **Database**: Named volume `live_wordpress_db_data`
-- **Files**: `/var/www/wordpress-live/`
-- **Config**: `/etc/wordpress/live/config/`
-- **Logs**: `/var/log/wordpress/live/`
-- **Network**: `live_wordpress_network`
-- **Domain**: acmerevival.com
+- **WordPress**: http://199.19.74.239
+- **phpMyAdmin**: http://127.0.0.1:8081
+- **Database**: MariaDB 11.4.9
 
 ### Staging Environment
-- **Database**: Named volume `staging_wordpress_db_data`
-- **Files**: `/var/www/wordpress-staging/`
-- **Config**: `/etc/wordpress/staging/config/`
-- **Logs**: `/var/log/wordpress/staging/`
-- **Network**: `staging_wordpress_network`
-- **Domain**: staging.acmerevival.com
+- **WordPress**: http://199.19.74.239:8080 (or separate domain)
+- **phpMyAdmin**: http://127.0.0.1:8082
+- **Database**: MariaDB 11.4.9
 
-## Server Configuration
+## Configuration
 
-- **Server IP**: 199.19.74.239
-- **Server Host**: 199-19-74-239.cloud-xip.com
-- **Server ID**: fbbcb6f8-4252-472e-ad12-406242d2d889
-- **Live Domain**: https://acmerevival.com/
-- **Staging Domain**: https://staging.acmerevival.com/
+Edit the `.env` file to customize:
+- Database credentials
+- WordPress admin credentials
+- Site titles and URLs
+- PHP and MySQL settings
 
-## Setup Instructions
-
-### 1. Clone and Prepare the Repository
+## Management Commands
 
 ```bash
-# Clone your repository to the VPS
-git clone https://github.com/shaponpal6/wordpress-setup.git
-cd ./wordpress-setup
+# Check live environment health
+./health-check-live.sh
+
+# Check staging environment health
+./health-check-staging.sh
+
+# Restart services
+./restart-services.sh [live|staging|all]
+
+# Monitor services
+./monitor.sh
+
+# Create backups
+./backup-live.sh
+./backup-staging.sh
+
+# Setup SSL (after DNS configuration)
+./setup-ssl.sh domain email
 ```
-
-# Make all scripts executable
-```bash
-chmod +x *.sh
-```
-
-### 2. Configure Environment Variables
-
-Edit the `.env` file to set your specific configuration:
-
-```bash
-nano .env
-```
-
-Your configuration is already set with:
-- `LIVE_SITE_URL`: acmerevival.com
-- `STAGING_SITE_URL`: staging.acmerevival.com
-- Strong passwords are configured
-- Contact email: contact@acmerevival.com
-
-### 3. Initial Setup
-
-Run the main setup script to install both environments:
-
-```bash
-./setup.sh
-```
-
-This will:
-- Create external directories for both environments
-- Build the PHP 7.4.33 Docker image
-- Start both live and staging environments (completely separated)
-- Install WordPress with your configuration
-- Set up Redis caching
-- Create initial backups
-
-### 4. Configure DNS (For Production)
-
-Point your domain names to your VPS IP address:
-- A record for acmerevival.com → 199.19.74.239
-- A record for staging.acmerevival.com → 199.19.74.239
-
-### 5. SSL Certificate Setup
-
-After DNS propagation, set up SSL certificates:
-
-```bash
-./setup-ssl.sh acmerevival.com staging.acmerevival.com contact@acmerevival.com
-```
-
-## Management Scripts
-
-### Core Management
-- `./setup.sh` - Initial setup of both environments
-- `./restart-services.sh [live|staging|all]` - Safely restart services
-- `./health-check-live.sh` - Check live environment health
-- `./health-check-staging.sh` - Check staging environment health
-- `./monitor.sh` - Monitor all services
-
-### Backup & Restore
-- `./backup-live.sh` - Backup live environment
-- `./backup-staging.sh` - Backup staging environment
-- `./restore-site.sh` - Restore from backup (update script as needed)
-
-## Service Access
-
-### Web Access
-- **Live Site**: `http://199.19.74.239` or `https://acmerevival.com` (after DNS)
-- **Staging Site**: `http://199.19.74.239:8080` or `https://staging.acmerevival.com` (after DNS)
-- **Live Admin**: `http://199.19.74.239/wp-admin` or `https://acmerevival.com/wp-admin`
-- **Staging Admin**: `http://199.19.74.239:8080/wp-admin` or `https://staging.acmerevival.com/wp-admin`
-
-### Database Access
-- **Live phpMyAdmin**: `http://199.19.74.239:8081` (localhost only)
-- **Staging phpMyAdmin**: `http://199.19.74.239:8082` (localhost only)
-
-### Monitoring
-- **Health Checks**: Run `./health-check-live.sh` or `./health-check-staging.sh`
-
-## Data Persistence
-
-All data is stored in external directories and will persist even after project folder deletion:
-
-- **WordPress Files**: `/var/www/wordpress-live/` and `/var/www/wordpress-staging/`
-- **Configuration**: `/etc/wordpress/live/config/` and `/etc/wordpress/staging/config/`
-- **Logs**: `/var/log/wordpress/live/` and `/var/log/wordpress/staging/`
-- **Databases**: Named Docker volumes (persist independently)
 
 ## Security Features
 
-- **Complete Isolation**: Separate databases, files, and configurations
-- **Network Isolation**: Separate Docker networks for each environment
-- **Security Headers**: Enhanced security headers in nginx configuration
-- **Secure phpMyAdmin**: Access restricted to localhost only
-- **SSL Support**: Let's Encrypt integration with automatic renewal
+- All containers run with security options
+- phpMyAdmin accessible only from localhost
+- Proper file permissions
+- MariaDB security configurations
+- Network isolation between environments
 
-## Production Best Practices
+## Production Considerations
 
-1. **Regular Backups**: Run backup scripts regularly for both environments
-2. **Monitor Resources**: Watch memory and disk usage for both environments
-3. **Update Security**: Keep Docker images updated
-4. **Domain Configuration**: Ensure proper DNS setup
-5. **SSL Renewal**: Certbot auto-renewal is configured
+1. **DNS Configuration**: Point your domains to the server IP
+2. **SSL Setup**: Use `./setup-ssl.sh` after DNS is configured
+3. **Firewall**: Allow ports 80, 443, and restrict others
+4. **Backups**: Regular backup strategy using provided scripts
+5. **Monitoring**: Use the health check scripts to monitor services
 
-## Development Workflow
+## Troubleshooting
 
-1. Make changes in staging environment
-2. Test thoroughly in completely isolated staging
-3. Deploy to live environment when ready
+- Check container status: `docker-compose -f docker-compose.live.yml ps`
+- View logs: `docker-compose -f docker-compose.live.yml logs [service]`
+- Diagnose database: `./diagnose-db.sh`
+- Check for errors: `./check-db-error.sh`
+
+## Stopping Services
+
+```bash
+# Stop live environment
+docker-compose -f docker-compose.live.yml down
+
+# Stop staging environment
+docker-compose -f docker-compose.staging.yml down
+
+# Stop all environments
+docker-compose -f docker-compose.live.yml down && docker-compose -f docker-compose.staging.yml down
+```
+
+## Data Persistence
+
+All data is stored in external directories and will persist even if you delete this project folder. This ensures no data loss during updates or maintenance.
 
 ## Support
 
-For issues or questions, review the logs and health checks first. If problems persist, check Docker container status and configuration files.
-
----
-
-This setup provides a production-ready WordPress environment with completely separated live and staging capabilities, ensuring full isolation and data persistence.
+For issues or questions, please check the troubleshooting commands above or create an issue in the repository.

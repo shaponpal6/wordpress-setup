@@ -39,7 +39,7 @@ wp config shuffle-salts --allow-root --path=/var/www/html
 # Add Redis configuration
 echo "Adding Redis configuration..."
 wp config set WP_CACHE true --allow-root --path=/var/www/html
-wp config set WP_REDIS_HOST redis --allow-root --path=/var/www/html
+wp config set WP_REDIS_HOST live-redis --allow-root --path=/var/www/html
 wp config set WP_REDIS_PORT 6379 --allow-root --path=/var/www/html
 
 # Install WordPress
