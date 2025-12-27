@@ -83,4 +83,4 @@ volumes:
 networks:
   live_network:
     name: live_wordpress_network
-    driver: bridge
+    external: true

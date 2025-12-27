@@ -79,6 +79,11 @@ print_status "Docker and Docker Compose are installed."
 print_status "Creating external directories for persistent data..."
 ./setup-external-dirs.sh
 
+# Create Docker networks
+print_status "Creating Docker networks..."
+docker network create live_network || true
+docker network create staging_network || true
+
 # Make all scripts executable
 print_status "Setting executable permissions..."
 chmod +x init-wordpress-live.sh init-wordpress-staging.sh backup-live.sh backup-staging.sh setup-ssl.sh monitor.sh health-check-live.sh health-check-staging.sh restart-services.sh setup-external-dirs.sh
@@ -87,6 +92,13 @@ chmod +x init-wordpress-live.sh init-wordpress-staging.sh backup-live.sh backup-
 print_status "Building PHP-FPM image with PHP 7.4.33..."
 docker build -t wordpress-php:7.4.33 -f Dockerfile.php . || {
     print_error "Failed to build PHP image"
+    exit 1
+}
+
+# Start Proxy services
+print_status "Starting Nginx Proxy services..."
+docker-compose -f docker-compose.proxy.yml up -d --build || {
+    print_error "Failed to start Proxy services"
     exit 1
 }
 

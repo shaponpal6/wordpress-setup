@@ -44,10 +44,12 @@ Complete production-ready WordPress setup with **completely separated** live and
 
 ```bash
 # Clone your repository to the VPS
-git clone <your-repo-url>
-cd /path/to/your/wordpress/setup
+git clone https://github.com/shaponpal6/wordpress-setup.git
+cd ./wordpress-setup
+```
 
 # Make all scripts executable
+```bash
 chmod +x *.sh
 ```
 
