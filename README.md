@@ -1,24 +1,34 @@
-# WordPress Docker Production Setup with Live & Staging
+# Acme Revival WordPress Production Setup
 
-This repository contains a complete Docker-based WordPress setup that replicates your shared hosting environment (PHP 7.4.33, MariaDB 11.4.9, WordPress 6.8.3) with separate live and staging environments for VPS deployment.
+Complete production-ready WordPress setup with **completely separated** live and staging environments for Acme Revival project.
 
 ## Features
 
-- **Dual Environment Setup**: Separate live and staging WordPress installations
-- **Production Ready**: Optimized for performance and security
+- **Complete Environment Separation**: Live and staging environments are completely isolated
+- **External Data Storage**: All data stored outside project folder for persistence
+- **Production Ready**: Optimized for security and performance
 - **Complete Monitoring**: Logging, health checks, and monitoring tools
-- **Database Management**: phpMyAdmin for both environments
+- **Database Management**: Separate phpMyAdmin for each environment
 - **SSL Support**: Let's Encrypt integration
 - **Backup & Restore**: Automated backup and restore capabilities
-- **Easy Management**: Comprehensive set of management scripts
 
-## Prerequisites
+## Complete Environment Separation
 
-- Docker (v20+)
-- Docker Compose (v1.29+)
-- Linux-based VPS (Ubuntu 20.04+ recommended)
-- Domain names for live and staging sites
-- At least 4GB RAM and 20GB disk space
+### Live Environment
+- **Database**: Named volume `live_wordpress_db_data`
+- **Files**: `/var/www/wordpress-live/`
+- **Config**: `/etc/wordpress/live/config/`
+- **Logs**: `/var/log/wordpress/live/`
+- **Network**: `live_wordpress_network`
+- **Domain**: acmerevival.com
+
+### Staging Environment
+- **Database**: Named volume `staging_wordpress_db_data`
+- **Files**: `/var/www/wordpress-staging/`
+- **Config**: `/etc/wordpress/staging/config/`
+- **Logs**: `/var/log/wordpress/staging/`
+- **Network**: `staging_wordpress_network`
+- **Domain**: staging.acmerevival.com
 
 ## Server Configuration
 
@@ -26,7 +36,7 @@ This repository contains a complete Docker-based WordPress setup that replicates
 - **Server Host**: 199-19-74-239.cloud-xip.com
 - **Server ID**: fbbcb6f8-4252-472e-ad12-406242d2d889
 - **Live Domain**: https://acmerevival.com/
-- **Testing Access**: Using IP address until DNS is configured
+- **Staging Domain**: https://staging.acmerevival.com/
 
 ## Setup Instructions
 
@@ -64,8 +74,9 @@ Run the main setup script to install both environments:
 ```
 
 This will:
+- Create external directories for both environments
 - Build the PHP 7.4.33 Docker image
-- Start both live and staging environments
+- Start both live and staging environments (completely separated)
 - Install WordPress with your configuration
 - Set up Redis caching
 - Create initial backups
@@ -98,10 +109,6 @@ After DNS propagation, set up SSL certificates:
 - `./backup-staging.sh` - Backup staging environment
 - `./restore-site.sh` - Restore from backup (update script as needed)
 
-### Logging & Monitoring
-- Centralized logging with Elasticsearch, Logstash, and Kibana
-- Access Kibana at `http://199.19.74.239:5601`
-
 ## Service Access
 
 ### Web Access
@@ -111,82 +118,42 @@ After DNS propagation, set up SSL certificates:
 - **Staging Admin**: `http://199.19.74.239:8080/wp-admin` or `https://staging.acmerevival.com/wp-admin`
 
 ### Database Access
-- **Live phpMyAdmin**: `http://199.19.74.239:8081`
-- **Staging phpMyAdmin**: `http://199.19.74.239:8082`
+- **Live phpMyAdmin**: `http://199.19.74.239:8081` (localhost only)
+- **Staging phpMyAdmin**: `http://199.19.74.239:8082` (localhost only)
 
 ### Monitoring
-- **Kibana (Logging)**: `http://199.19.74.239:5601`
 - **Health Checks**: Run `./health-check-live.sh` or `./health-check-staging.sh`
 
-## Docker Compose Files
+## Data Persistence
 
-- `docker-compose.live.yml` - Live environment services
-- `docker-compose.staging.yml` - Staging environment services
-- `docker-compose.logging.yml` - Logging and monitoring services
+All data is stored in external directories and will persist even after project folder deletion:
+
+- **WordPress Files**: `/var/www/wordpress-live/` and `/var/www/wordpress-staging/`
+- **Configuration**: `/etc/wordpress/live/config/` and `/etc/wordpress/staging/config/`
+- **Logs**: `/var/log/wordpress/live/` and `/var/log/wordpress/staging/`
+- **Databases**: Named Docker volumes (persist independently)
 
 ## Security Features
 
-- Isolated networks for live and staging environments
-- Separate databases preventing cross-contamination
-- Security headers in nginx configuration
-- Proper file permissions
-- SSL support with Let's Encrypt
+- **Complete Isolation**: Separate databases, files, and configurations
+- **Network Isolation**: Separate Docker networks for each environment
+- **Security Headers**: Enhanced security headers in nginx configuration
+- **Secure phpMyAdmin**: Access restricted to localhost only
+- **SSL Support**: Let's Encrypt integration with automatic renewal
 
 ## Production Best Practices
 
-1. **Regular Backups**: Run backup scripts regularly
-2. **Monitor Resources**: Watch memory and disk usage
+1. **Regular Backups**: Run backup scripts regularly for both environments
+2. **Monitor Resources**: Watch memory and disk usage for both environments
 3. **Update Security**: Keep Docker images updated
 4. **Domain Configuration**: Ensure proper DNS setup
 5. **SSL Renewal**: Certbot auto-renewal is configured
 
-## Troubleshooting
-
-### Common Issues
-
-1. **Port Conflicts**: Ensure ports 80, 443, 8081, 8082, 5601 are available
-2. **Domain Resolution**: Verify DNS records are properly set
-3. **Database Connection**: Check environment variables in `.env`
-
-### Useful Commands
-
-```bash
-# Check all running containers
-docker-compose -f docker-compose.live.yml ps
-docker-compose -f docker-compose.staging.yml ps
-
-# View logs
-docker-compose -f docker-compose.live.yml logs -f
-docker-compose -f docker-compose.staging.yml logs -f
-
-# Restart services safely
-./restart-services.sh all
-
-# Run health checks
-./health-check-live.sh
-./health-check-staging.sh
-```
-
 ## Development Workflow
 
 1. Make changes in staging environment
-2. Test thoroughly
+2. Test thoroughly in completely isolated staging
 3. Deploy to live environment when ready
-
-## Maintenance
-
-### Regular Maintenance Tasks
-
-1. **Daily**: Monitor service health with health check scripts
-2. **Weekly**: Review logs and system resources
-3. **Monthly**: Update Docker images and WordPress
-4. **As needed**: Perform backups and restore tests
-
-### Updating WordPress
-
-1. Update in staging first
-2. Test functionality
-3. Deploy to live environment
 
 ## Support
 
@@ -194,4 +161,4 @@ For issues or questions, review the logs and health checks first. If problems pe
 
 ---
 
-This setup provides a production-ready WordPress environment with live and staging capabilities, complete monitoring, and easy management tools.
+This setup provides a production-ready WordPress environment with completely separated live and staging capabilities, ensuring full isolation and data persistence.

@@ -14,7 +14,7 @@ services:
       - MYSQL_ROOT_PASSWORD=${STAGING_DB_ROOT_PASSWORD}
     volumes:
       - staging_db_data:/var/lib/mysql
-      - /etc/wordpress/config/mariadb:/etc/mysql/conf.d
+      - /etc/wordpress/staging/config/mariadb:/etc/mysql/conf.d
     networks:
       - staging_network
     security_opt:
@@ -40,9 +40,9 @@ services:
     volumes:
       - staging_wordpress_data:/var/www/html
       - /var/www/wordpress-staging/wp-content:/var/www/html/wp-content
-      - /etc/wordpress/config/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
-      - /etc/wordpress/config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
-      - /var/log/wordpress/php-staging:/var/log/php
+      - /etc/wordpress/staging/config/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - /etc/wordpress/staging/config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - /var/log/wordpress/staging:/var/log/php
     networks:
       - staging_network
     security_opt:

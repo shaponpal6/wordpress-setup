@@ -2,50 +2,72 @@
 
 # Create necessary external directories for WordPress setup
 # These will persist even after project folder is deleted
+# Complete separation of live and staging environments
 
 set -e
 
 echo "Creating external directories for Acme Revival WordPress setup..."
+echo "Ensuring complete separation of live and staging environments..."
 
-# Create system directories for configuration
-sudo mkdir -p /etc/wordpress/config/mariadb
-sudo mkdir -p /etc/wordpress/config/php
+# Create system directories for live configuration
+sudo mkdir -p /etc/wordpress/live/config/mariadb
+sudo mkdir -p /etc/wordpress/live/config/php
 
-# Create directories for WordPress content
+# Create system directories for staging configuration
+sudo mkdir -p /etc/wordpress/staging/config/mariadb
+sudo mkdir -p /etc/wordpress/staging/config/php
+
+# Create directories for WordPress content - completely separate
 sudo mkdir -p /var/www/wordpress-live/wp-content
 sudo mkdir -p /var/www/wordpress-staging/wp-content
 
-# Create log directories
-sudo mkdir -p /var/log/wordpress/php-live
-sudo mkdir -p /var/log/wordpress/php-staging
+# Create separate log directories for live and staging
+sudo mkdir -p /var/log/wordpress/live
+sudo mkdir -p /var/log/wordpress/staging
 sudo mkdir -p /var/log/wordpress/mysql
 
 # Create SSL directory
 sudo mkdir -p /etc/ssl/certs
 
 # Create WordPress config directories if they don't exist
-sudo mkdir -p /etc/wordpress/config/nginx
+sudo mkdir -p /etc/wordpress/live/config/nginx
+sudo mkdir -p /etc/wordpress/staging/config/nginx
 
-# Set proper permissions
+# Set proper permissions for live environment
 sudo chown -R www-data:www-data /var/www/wordpress-live/
-sudo chown -R www-data:www-data /var/www/wordpress-staging/
-sudo chown -R www-data:www-data /var/log/wordpress/
-sudo chown -R www-data:www-data /etc/wordpress/config/php/
-sudo chown -R www-data:www-data /etc/wordpress/config/mariadb/
+sudo chown -R www-data:www-data /var/log/wordpress/live/
+sudo chown -R www-data:www-data /etc/wordpress/live/config/php/
+sudo chown -R www-data:www-data /etc/wordpress/live/config/mariadb/
 
-# Copy configuration files to external locations
-sudo cp -f config/php/php.ini /etc/wordpress/config/php/php.ini
-sudo cp -f config/php/www.conf /etc/wordpress/config/php/www.conf
-sudo cp -f config/mariadb/custom.cnf /etc/wordpress/config/mariadb/custom.cnf
+# Set proper permissions for staging environment
+sudo chown -R www-data:www-data /var/www/wordpress-staging/
+sudo chown -R www-data:www-data /var/log/wordpress/staging/
+sudo chown -R www-data:www-data /etc/wordpress/staging/config/php/
+sudo chown -R www-data:www-data /etc/wordpress/staging/config/mariadb/
+
+# Copy configuration files to separate locations for live and staging
+sudo cp -f config/php/php.ini /etc/wordpress/live/config/php/php.ini
+sudo cp -f config/php/www.conf /etc/wordpress/live/config/php/www.conf
+sudo cp -f config/mariadb/custom.cnf /etc/wordpress/live/config/mariadb/custom.cnf
+
+# Copy staging configuration files separately
+sudo cp -f config/php/php.ini /etc/wordpress/staging/config/php/php.ini
+sudo cp -f config/php/www.conf /etc/wordpress/staging/config/php/www.conf
+sudo cp -f config/mariadb/custom.cnf /etc/wordpress/staging/config/mariadb/custom.cnf
 
 echo "External directories created successfully!"
-echo "Directories created:"
-echo "  - /etc/wordpress/config/mariadb"
-echo "  - /etc/wordpress/config/php"
+echo "Complete separation of live and staging environments:"
+echo "  - /etc/wordpress/live/config/mariadb"
+echo "  - /etc/wordpress/live/config/php"
 echo "  - /var/www/wordpress-live/wp-content"
+echo "  - /var/log/wordpress/live"
+echo "  - /etc/wordpress/staging/config/mariadb"
+echo "  - /etc/wordpress/staging/config/php"
 echo "  - /var/www/wordpress-staging/wp-content"
-echo "  - /var/log/wordpress/php-live, php-staging, mysql"
+echo "  - /var/log/wordpress/staging"
+echo "  - /var/log/wordpress/mysql"
 echo "  - /etc/ssl/certs"
 echo ""
-echo "Configuration files copied to external locations."
+echo "Configuration files copied to separate locations for live and staging."
 echo "These directories will persist even after the project folder is deleted."
+echo "Live and staging environments are completely isolated from each other."
