@@ -106,7 +106,7 @@ docker-compose -f docker-compose.staging.yml up -d --build || {
 
 # Wait for services to be running before checking database
 print_status "Waiting for database containers to start..."
-sleep 15
+sleep 30
 
 # Check if containers are running
 print_status "Checking if database containers are running..."
@@ -124,12 +124,12 @@ fi
 
 # Wait for databases to be ready with extended timeout
 print_status "Waiting for databases to be ready (this may take a few minutes)..."
-sleep 10
+sleep 20
 
 # Check Live database connectivity with extended timeout
 # Using mysql command instead of mysqladmin since mysqladmin might not be available
 print_status "Checking Live database readiness..."
-timeout 300 bash -c 'while ! docker exec live_wordpress_db mysql -u"$LIVE_DB_USER" -p"$LIVE_DB_PASSWORD" -e "SELECT 1;" --silent > /dev/null 2>&1; do echo "Waiting for Live database..."; sleep 10; done' || {
+timeout 600 bash -c 'while ! docker exec live_wordpress_db mysql -u"$LIVE_DB_USER" -p"$LIVE_DB_PASSWORD" -e "SELECT 1;" --silent > /dev/null 2>&1; do echo "Waiting for Live database..."; sleep 15; done' || {
     print_error "Live database did not become ready in time"
     print_status "Displaying Live database logs:"
     docker-compose -f docker-compose.live.yml logs live-db
@@ -138,7 +138,7 @@ timeout 300 bash -c 'while ! docker exec live_wordpress_db mysql -u"$LIVE_DB_USE
 
 # Check Staging database connectivity with extended timeout
 print_status "Checking Staging database readiness..."
-timeout 300 bash -c 'while ! docker exec staging_wordpress_db mysql -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" -e "SELECT 1;" --silent > /dev/null 2>&1; do echo "Waiting for Staging database..."; sleep 10; done' || {
+timeout 600 bash -c 'while ! docker exec staging_wordpress_db mysql -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" -e "SELECT 1;" --silent > /dev/null 2>&1; do echo "Waiting for Staging database..."; sleep 15; done' || {
     print_error "Staging database did not become ready in time"
     print_status "Displaying Staging database logs:"
     docker-compose -f docker-compose.staging.yml logs staging-db
