@@ -127,8 +127,9 @@ print_status "Waiting for databases to be ready (this may take a few minutes)...
 sleep 10
 
 # Check Live database connectivity with extended timeout
+# Using mysql command instead of mysqladmin since mysqladmin might not be available
 print_status "Checking Live database readiness..."
-timeout 300 bash -c 'while ! docker exec live_wordpress_db mysqladmin ping -u"$LIVE_DB_USER" -p"$LIVE_DB_PASSWORD" --silent; do echo "Waiting for Live database..."; sleep 10; done' || {
+timeout 300 bash -c 'while ! docker exec live_wordpress_db mysql -u"$LIVE_DB_USER" -p"$LIVE_DB_PASSWORD" -e "SELECT 1;" --silent > /dev/null 2>&1; do echo "Waiting for Live database..."; sleep 10; done' || {
     print_error "Live database did not become ready in time"
     print_status "Displaying Live database logs:"
     docker-compose -f docker-compose.live.yml logs live-db
@@ -137,7 +138,7 @@ timeout 300 bash -c 'while ! docker exec live_wordpress_db mysqladmin ping -u"$L
 
 # Check Staging database connectivity with extended timeout
 print_status "Checking Staging database readiness..."
-timeout 300 bash -c 'while ! docker exec staging_wordpress_db mysqladmin ping -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" --silent; do echo "Waiting for Staging database..."; sleep 10; done' || {
+timeout 300 bash -c 'while ! docker exec staging_wordpress_db mysql -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" -e "SELECT 1;" --silent > /dev/null 2>&1; do echo "Waiting for Staging database..."; sleep 10; done' || {
     print_error "Staging database did not become ready in time"
     print_status "Displaying Staging database logs:"
     docker-compose -f docker-compose.staging.yml logs staging-db
