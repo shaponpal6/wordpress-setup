@@ -41,9 +41,6 @@ RUN pecl install redis-5.3.7 && docker-php-ext-enable redis
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Create a non-root user for security
-RUN useradd -m -s /bin/bash -u 1000 www-data
-
 # Set working directory
 WORKDIR /var/www/html
 
@@ -55,7 +52,7 @@ RUN chown -R www-data:www-data /var/www/html \
 # Expose port
 EXPOSE 9000
 
-# Security: Use non-root user
+# Security: Use existing www-data user
 USER www-data
 
 # Health check

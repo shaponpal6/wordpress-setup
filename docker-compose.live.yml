@@ -76,17 +76,7 @@ services:
 
 volumes:
   live_db_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./volumes/live-db-data
   live_wordpress_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./volumes/live-wp-data
 
 networks:
   live_network:

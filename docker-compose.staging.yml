@@ -76,17 +76,7 @@ services:
 
 volumes:
   staging_db_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./volumes/staging-db-data
   staging_wordpress_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./volumes/staging-wp-data
 
 networks:
   staging_network:

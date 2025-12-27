@@ -5,12 +5,6 @@ set -e
 
 echo "Creating volume directories for Acme Revival WordPress setup..."
 
-# Create volume directories
-mkdir -p volumes/live-db-data
-mkdir -p volumes/live-wp-data
-mkdir -p volumes/staging-db-data
-mkdir -p volumes/staging-wp-data
-
 # Create log directories
 mkdir -p logs/nginx
 mkdir -p logs/php-live
@@ -24,18 +18,17 @@ mkdir -p wp-content-staging
 # Create SSL directory
 mkdir -p ssl
 
-# Set proper permissions
-chown -R 1000:1000 volumes/
-chown -R 1000:1000 wp-content-live/
-chown -R 1000:1000 wp-content-staging/
-chown -R 1000:1000 logs/
+# Create config directories if they don't exist
+mkdir -p config/nginx
+mkdir -p config/php
+mkdir -p config/mariadb
+mkdir -p config/security
 
 echo "Volume directories created successfully!"
 echo "Directories created:"
-echo "  - volumes/live-db-data"
-echo "  - volumes/live-wp-data"
-echo "  - volumes/staging-db-data"
-echo "  - volumes/staging-wp-data"
 echo "  - logs/nginx, logs/php-live, logs/php-staging, logs/mysql"
 echo "  - wp-content-live, wp-content-staging"
 echo "  - ssl"
+echo "  - config directories"
+echo ""
+echo "Note: Docker named volumes will be created automatically when containers start."
