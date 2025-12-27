@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # Live MariaDB Database
+  live-db:
+    image: mariadb:11.4.9
+    container_name: live_wordpress_db
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - MYSQL_DATABASE=${LIVE_DB_NAME}
+      - MYSQL_USER=${LIVE_DB_USER}
+      - MYSQL_PASSWORD=${LIVE_DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${LIVE_DB_ROOT_PASSWORD}
+    volumes:
+      - live_db_data:/var/lib/mysql
+      - ./config/mariadb:/etc/mysql/conf.d
+    networks:
+      - live_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Live PHP-FPM with PHP 7.4.33
+  live-php-fpm:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    container_name: live_wordpress_php
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=live-db:3306
+      - WORDPRESS_DB_NAME=${LIVE_DB_NAME}
+      - WORDPRESS_DB_USER=${LIVE_DB_USER}
+      - WORDPRESS_DB_PASSWORD=${LIVE_DB_PASSWORD}
+    volumes:
+      - live_wordpress_data:/var/www/html
+      - ./wp-content-live:/var/www/html/wp-content
+      - ./config/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - ./config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./logs/php-live:/var/log/php
+    networks:
+      - live_network
+    depends_on:
+      - live-db
+    healthcheck:
+      test: ["CMD", "php", "-r", "echo 'PHP-FPM is running';"]
+      timeout: 20s
+      retries: 10
+
+  # Live phpMyAdmin
+  live-phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: live_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    environment:
+      - PMA_HOST=live-db
+      - PMA_USER=${LIVE_DB_USER}
+      - PMA_PASSWORD=${LIVE_DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${LIVE_DB_ROOT_PASSWORD}
+    networks:
+      - live_network
+    depends_on:
+      - live-db
+
+volumes:
+  live_db_data:
+  live_wordpress_data:
+
+networks:
+  live_network:
+    driver: bridge

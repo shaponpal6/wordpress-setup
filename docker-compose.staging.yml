@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # Staging MariaDB Database
+  staging-db:
+    image: mariadb:11.4.9
+    container_name: staging_wordpress_db
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - MYSQL_DATABASE=${STAGING_DB_NAME}
+      - MYSQL_USER=${STAGING_DB_USER}
+      - MYSQL_PASSWORD=${STAGING_DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${STAGING_DB_ROOT_PASSWORD}
+    volumes:
+      - staging_db_data:/var/lib/mysql
+      - ./config/mariadb:/etc/mysql/conf.d
+    networks:
+      - staging_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Staging PHP-FPM with PHP 7.4.33
+  staging-php-fpm:
+    build:
+      context: .
+      dockerfile: Dockerfile.php
+    container_name: staging_wordpress_php
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=staging-db:3306
+      - WORDPRESS_DB_NAME=${STAGING_DB_NAME}
+      - WORDPRESS_DB_USER=${STAGING_DB_USER}
+      - WORDPRESS_DB_PASSWORD=${STAGING_DB_PASSWORD}
+    volumes:
+      - staging_wordpress_data:/var/www/html
+      - ./wp-content-staging:/var/www/html/wp-content
+      - ./config/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - ./config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./logs/php-staging:/var/log/php
+    networks:
+      - staging_network
+    depends_on:
+      - staging-db
+    healthcheck:
+      test: ["CMD", "php", "-r", "echo 'PHP-FPM is running';"]
+      timeout: 20s
+      retries: 10
+
+  # Staging phpMyAdmin
+  staging-phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: staging_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    environment:
+      - PMA_HOST=staging-db
+      - PMA_USER=${STAGING_DB_USER}
+      - PMA_PASSWORD=${STAGING_DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${STAGING_DB_ROOT_PASSWORD}
+    networks:
+      - staging_network
+    depends_on:
+      - staging-db
+
+volumes:
+  staging_db_data:
+  staging_wordpress_data:
+
+networks:
+  staging_network:
+    driver: bridge

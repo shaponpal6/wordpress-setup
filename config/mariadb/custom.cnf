@@ -1,0 +1,50 @@
+[mysqld]
+# Basic settings
+port = 3306
+bind-address = 0.0.0.0
+
+# InnoDB settings
+innodb_buffer_pool_size = 256M
+innodb_log_file_size = 64M
+innodb_log_buffer_size = 8M
+innodb_flush_log_at_trx_commit = 1
+innodb_lock_wait_timeout = 50
+innodb_file_per_table = 1
+
+# Connection settings
+max_connections = 100
+max_connect_errors = 100000
+wait_timeout = 600
+interactive_timeout = 600
+connect_timeout = 10
+
+# Query cache (disabled for MariaDB 10.1+)
+query_cache_type = 0
+query_cache_size = 0
+
+# Table settings
+table_open_cache = 400
+table_definition_cache = 400
+tmp_table_size = 32M
+max_heap_table_size = 32M
+
+# Logging
+log-error = /var/log/mysql/error.log
+slow_query_log = 1
+slow_query_log_file = /var/log/mysql/slow.log
+long_query_time = 2
+
+# Character set
+character-set-server = utf8mb4
+collation-server = utf8mb4_unicode_ci
+
+# Performance settings
+key_buffer_size = 16M
+sort_buffer_size = 256K
+read_buffer_size = 128K
+read_rnd_buffer_size = 256K
+myisam_sort_buffer_size = 16M
+thread_cache_size = 16
+
+# Security
+local-infile = 0
