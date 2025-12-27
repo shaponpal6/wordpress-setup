@@ -81,8 +81,8 @@ print_status "Creating external directories for persistent data..."
 
 # Create Docker networks
 print_status "Creating Docker networks..."
-docker network create live_network || true
-docker network create staging_network || true
+docker network create live_wordpress_network || true
+docker network create staging_wordpress_network || true
 
 # Make all scripts executable
 print_status "Setting executable permissions..."

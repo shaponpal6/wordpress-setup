@@ -34,5 +34,7 @@ volumes:
 networks:
   live_network:
     external: true
+    name: live_wordpress_network
   staging_network:
     external: true
+    name: staging_wordpress_network
