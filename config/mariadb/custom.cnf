@@ -24,8 +24,8 @@ interactive_timeout = 600
 connect_timeout = 30  # Increased from default
 
 # Query cache (disabled for MariaDB 10.1+)
-query_cache_type = 0
-query_cache_size = 0
+# query_cache_type = 0
+# query_cache_size = 0
 
 # Table settings
 table_open_cache = 400

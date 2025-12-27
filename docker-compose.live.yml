@@ -15,6 +15,7 @@ services:
     volumes:
       - live_db_data:/var/lib/mysql
       - /etc/wordpress/live/config/mariadb:/etc/mysql/conf.d
+      - /var/log/wordpress/mysql:/var/log/mysql
     networks:
       - live_network
     security_opt:

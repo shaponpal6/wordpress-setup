@@ -15,6 +15,7 @@ services:
     volumes:
       - staging_db_data:/var/lib/mysql
       - /etc/wordpress/staging/config/mariadb:/etc/mysql/conf.d
+      - /var/log/wordpress/mysql:/var/log/mysql
     networks:
       - staging_network
     security_opt:

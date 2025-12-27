@@ -37,13 +37,15 @@ sudo mkdir -p /etc/wordpress/staging/config/nginx
 sudo chown -R www-data:www-data /var/www/wordpress-live/
 sudo chown -R www-data:www-data /var/log/wordpress/live/
 sudo chown -R www-data:www-data /etc/wordpress/live/config/php/
-sudo chown -R www-data:www-data /etc/wordpress/live/config/mariadb/
+# MariaDB needs specific ownership (usually 999:999)
+sudo chown -R 999:999 /etc/wordpress/live/config/mariadb/
+sudo chown -R 999:999 /var/log/wordpress/mysql/
 
 # Set proper permissions for staging environment
 sudo chown -R www-data:www-data /var/www/wordpress-staging/
 sudo chown -R www-data:www-data /var/log/wordpress/staging/
 sudo chown -R www-data:www-data /etc/wordpress/staging/config/php/
-sudo chown -R www-data:www-data /etc/wordpress/staging/config/mariadb/
+sudo chown -R 999:999 /etc/wordpress/staging/config/mariadb/
 
 # Copy configuration files to separate locations for live and staging
 sudo cp -f config/php/php.ini /etc/wordpress/live/config/php/php.ini
@@ -54,6 +56,10 @@ sudo cp -f config/mariadb/custom.cnf /etc/wordpress/live/config/mariadb/custom.c
 sudo cp -f config/php/php.ini /etc/wordpress/staging/config/php/php.ini
 sudo cp -f config/php/www.conf /etc/wordpress/staging/config/php/www.conf
 sudo cp -f config/mariadb/custom.cnf /etc/wordpress/staging/config/mariadb/custom.cnf
+
+# Ensure configs are readable
+sudo chmod 644 /etc/wordpress/live/config/mariadb/custom.cnf
+sudo chmod 644 /etc/wordpress/staging/config/mariadb/custom.cnf
 
 echo "External directories created successfully!"
 echo "Complete separation of live and staging environments:"
