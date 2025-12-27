@@ -121,19 +121,47 @@ docker-compose -f docker-compose.staging.yml up -d --build || {
 
 # Wait for services to be running before checking database
 print_status "Waiting for database containers to start..."
-sleep 30
+sleep 10
 
-# Check if containers are running
-print_status "Checking if database containers are running..."
-if ! docker ps | grep -q live_wordpress_db; then
-    print_error "Live database container is not running"
-    docker-compose -f docker-compose.live.yml logs live-db
+# Wait for containers to be created (not just started)
+print_status "Waiting for containers to be created..."
+for i in {1..30}; do
+    if docker ps -a | grep -q live_wordpress_db && docker ps -a | grep -q staging_wordpress_db; then
+        print_status "Containers created successfully"
+        break
+    fi
+    sleep 2
+done
+
+# Check if containers are running (allow time for initialization)
+print_status "Checking database container status..."
+for i in {1..20}; do
+    LIVE_STATUS=$(docker inspect -f '{{.State.Status}}' live_wordpress_db 2>/dev/null || echo "not_found")
+    STAGING_STATUS=$(docker inspect -f '{{.State.Status}}' staging_wordpress_db 2>/dev/null || echo "not_found")
+    
+    if [ "$LIVE_STATUS" = "running" ] && [ "$STAGING_STATUS" = "running" ]; then
+        print_status "Both database containers are running"
+        break
+    elif [ "$LIVE_STATUS" = "exited" ] || [ "$STAGING_STATUS" = "exited" ]; then
+        print_error "Database container(s) exited unexpectedly"
+        [ "$LIVE_STATUS" = "exited" ] && docker logs live_wordpress_db
+        [ "$STAGING_STATUS" = "exited" ] && docker logs staging_wordpress_db
+        exit 1
+    fi
+    
+    echo "Waiting for containers to start (attempt $i/20)..."
+    sleep 3
+done
+
+if [ "$LIVE_STATUS" != "running" ]; then
+    print_error "Live database container failed to start"
+    docker logs live_wordpress_db 2>&1 || echo "No logs available"
     exit 1
 fi
 
-if ! docker ps | grep -q staging_wordpress_db; then
-    print_error "Staging database container is not running"
-    docker-compose -f docker-compose.staging.yml logs staging-db
+if [ "$STAGING_STATUS" != "running" ]; then
+    print_error "Staging database container failed to start"
+    docker logs staging_wordpress_db 2>&1 || echo "No logs available"
     exit 1
 fi
 
