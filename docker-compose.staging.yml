@@ -84,4 +84,4 @@ volumes:
 networks:
   staging_network:
     name: staging_wordpress_network
-    external: true
+    driver: bridge
