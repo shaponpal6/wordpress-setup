@@ -17,6 +17,8 @@ services:
       - ./config/mariadb:/etc/mysql/conf.d
     networks:
       - live_network
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
@@ -43,6 +45,8 @@ services:
       - ./logs/php-live:/var/log/php
     networks:
       - live_network
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       - live-db
     healthcheck:
@@ -56,20 +60,33 @@ services:
     container_name: live_phpmyadmin
     restart: unless-stopped
     ports:
-      - "8081:80"
+      - "127.0.0.1:8081:80"  # Bind to localhost only for security
     environment:
       - PMA_HOST=live-db
       - PMA_USER=${LIVE_DB_USER}
       - PMA_PASSWORD=${LIVE_DB_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${LIVE_DB_ROOT_PASSWORD}
+      - PMA_ABSOLUTE_URI=http://199.19.74.239:8081  # Specify absolute URI for security
     networks:
       - live_network
     depends_on:
       - live-db
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   live_db_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/live-db-data
   live_wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/live-wp-data
 
 networks:
   live_network:

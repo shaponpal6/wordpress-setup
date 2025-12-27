@@ -3,6 +3,11 @@
 port = 3306
 bind-address = 0.0.0.0
 
+# Security settings
+local-infile = 0
+skip-show-database
+sql-mode = "STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION"
+
 # InnoDB settings
 innodb_buffer_pool_size = 256M
 innodb_log_file_size = 64M

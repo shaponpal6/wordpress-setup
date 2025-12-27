@@ -17,6 +17,8 @@ services:
       - ./config/mariadb:/etc/mysql/conf.d
     networks:
       - staging_network
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       timeout: 20s
@@ -43,6 +45,8 @@ services:
       - ./logs/php-staging:/var/log/php
     networks:
       - staging_network
+    security_opt:
+      - no-new-privileges:true
     depends_on:
       - staging-db
     healthcheck:
@@ -56,20 +60,33 @@ services:
     container_name: staging_phpmyadmin
     restart: unless-stopped
     ports:
-      - "8082:80"
+      - "127.0.0.1:8082:80"  # Bind to localhost only for security
     environment:
       - PMA_HOST=staging-db
       - PMA_USER=${STAGING_DB_USER}
       - PMA_PASSWORD=${STAGING_DB_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${STAGING_DB_ROOT_PASSWORD}
+      - PMA_ABSOLUTE_URI=http://199.19.74.239:8082  # Specify absolute URI for security
     networks:
       - staging_network
     depends_on:
       - staging-db
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   staging_db_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/staging-db-data
   staging_wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./volumes/staging-wp-data
 
 networks:
   staging_network:

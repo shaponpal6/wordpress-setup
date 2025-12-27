@@ -1,9 +1,11 @@
 #!/bin/bash
 
-# Staging WordPress Health Check Script
+# Staging WordPress Health Check Script for Acme Revival
+# Server: 199.19.74.239, Domain: acmerevival.com
 set -e
 
-echo "=== Staging WordPress Health Check ==="
+echo "=== Acme Revival Staging WordPress Health Check ==="
+echo "Server: 199.19.74.239 | Domain: staging.acmerevival.com"
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
@@ -49,6 +51,10 @@ if docker exec staging_wordpress_db mysql -u"$STAGING_DB_USER" -p"$STAGING_DB_PA
     # Check database size
     DB_SIZE=$(docker exec staging_wordpress_db mysql -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" -e "SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 2) AS 'DB Size in MB' FROM information_schema.tables WHERE table_schema = '$STAGING_DB_NAME';" | tail -1)
     echo "Database size: $DB_SIZE MB"
+    
+    # Check database uptime
+    DB_UPTIME=$(docker exec staging_wordpress_db mysql -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" -e "SHOW STATUS LIKE 'Uptime';" | tail -1 | awk '{print $2}')
+    echo "Database uptime: $((DB_UPTIME / 60)) minutes"
 else
     echo "Database connection: ❌ Failed"
 fi
@@ -56,12 +62,16 @@ fi
 # Check Staging WordPress accessibility
 echo ""
 echo "=== Staging WordPress Health ==="
-if curl -f -s http://localhost > /dev/null 2>&1; then
+if curl -f -s http://199.19.74.239:8080 > /dev/null 2>&1; then
     echo "WordPress site: ✅ Accessible"
     
     # Check WordPress version
-    WP_VERSION=$(curl -s http://localhost | grep -o 'content="WordPress [0-9.]*' | head -1 | cut -d' ' -f2)
+    WP_VERSION=$(curl -s http://199.19.74.239:8080 | grep -o 'content="WordPress [0-9.]*' | head -1 | cut -d' ' -f2)
     echo "WordPress version: $WP_VERSION"
+    
+    # Check response time
+    RESPONSE_TIME=$(curl -o /dev/null -s -w '%{time_total}s' http://199.19.74.239:8080)
+    echo "Response time: $RESPONSE_TIME"
 else
     echo "WordPress site: ❌ Not accessible"
 fi
@@ -90,5 +100,23 @@ echo "Staging PHP errors in last 10 lines: $STAGING_PHP_ERRORS"
 STAGING_DB_ERRORS=$(docker-compose -f docker-compose.staging.yml logs --tail=10 staging-db 2>/dev/null | grep -i "error" | wc -l)
 echo "Staging DB errors in last 10 lines: $STAGING_DB_ERRORS"
 
+# Security checks
 echo ""
-echo "Staging health check completed!"
+echo "=== Staging Security Checks ==="
+# Check if SSL is configured
+if curl -f -s https://staging.acmerevival.com > /dev/null 2>&1; then
+    echo "SSL Certificate: ✅ Available"
+else
+    echo "SSL Certificate: ⚠️  Not configured (Run ./setup-ssl.sh)"
+fi
+
+# Check for security headers
+SECURITY_HEADERS=$(curl -I -s http://199.19.74.239:8080 | grep -E "X-Frame-Options|X-XSS-Protection|X-Content-Type-Options" | wc -l)
+if [ "$SECURITY_HEADERS" -ge 3 ]; then
+    echo "Security headers: ✅ Configured"
+else
+    echo "Security headers: ⚠️  Missing"
+fi
+
+echo ""
+echo "Staging health check completed for Acme Revival server 199.19.74.239!"

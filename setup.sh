@@ -64,15 +64,22 @@ if ! command -v docker-compose &> /dev/null; then
     exit 1
 fi
 
+# Check available disk space (minimum 5GB recommended)
+print_status "Checking available disk space..."
+AVAILABLE_SPACE=$(df . | awk 'NR==2 {print $4}' | sed 's/G//')
+if [ "$AVAILABLE_SPACE" -lt 5000000 ]; then
+    print_warning "Available disk space is low. At least 5GB is recommended."
+fi
+
 print_status "Docker and Docker Compose are installed."
 
-# Create necessary directories
-print_status "Creating directory structure..."
-mkdir -p config/nginx config/php config/mariadb config/security logs/nginx logs/php ssl wp-content-live wp-content-staging
+# Create necessary directories and volumes
+print_status "Creating volume directories..."
+./create-volumes.sh
 
 # Make all scripts executable
 print_status "Setting executable permissions..."
-chmod +x init-wordpress-live.sh init-wordpress-staging.sh backup-live.sh backup-staging.sh setup-ssl.sh monitor.sh health-check-live.sh health-check-staging.sh restart-services.sh
+chmod +x init-wordpress-live.sh init-wordpress-staging.sh backup-live.sh backup-staging.sh setup-ssl.sh monitor.sh health-check-live.sh health-check-staging.sh restart-services.sh create-volumes.sh
 
 # Build the PHP image
 print_status "Building PHP-FPM image with PHP 7.4.33..."
@@ -153,6 +160,11 @@ print_status "Creating initial Live backup..."
 print_status "Creating initial Staging backup..."
 ./backup-staging.sh || print_warning "Could not create initial Staging backup"
 
+# Run health checks to verify setup
+print_status "Running health checks..."
+./health-check-live.sh
+./health-check-staging.sh
+
 # Display completion message
 echo ""
 echo -e "${GREEN}================================================${NC}"
@@ -177,6 +189,8 @@ echo -e "  ${YELLOW}./backup-staging.sh${NC}       - Create a backup of your Sta
 echo -e "  ${YELLOW}./setup-ssl.sh domain email${NC} - Setup SSL with Let's Encrypt"
 echo -e "  ${YELLOW}./monitor.sh${NC}              - Monitor your WordPress installations"
 echo -e "  ${YELLOW}./restart-services.sh${NC}     - Safely restart services"
+echo -e "  ${YELLOW}./health-check-live.sh${NC}    - Check live environment health"
+echo -e "  ${YELLOW}./health-check-staging.sh${NC} - Check staging environment health"
 echo -e "  ${YELLOW}docker-compose -f docker-compose.live.yml logs -f${NC}    - View Live logs"
 echo -e "  ${YELLOW}docker-compose -f docker-compose.staging.yml logs -f${NC} - View Staging logs"
 echo -e "  ${YELLOW}docker-compose -f docker-compose.live.yml down${NC}       - Stop Live services"
@@ -192,3 +206,4 @@ echo -e "4. Configure your firewall to allow ports 80 and 443"
 echo ""
 print_status "Setup completed successfully! Your Acme Revival sites are ready for testing."
 print_status "Access your sites using the IP address until DNS is configured."
+print_status "Security and performance improvements have been applied."

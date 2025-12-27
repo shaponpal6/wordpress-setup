@@ -1,6 +1,6 @@
 FROM php:7.4.33-fpm
 
-# Install system dependencies
+# Install system dependencies with security updates
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -19,9 +19,10 @@ RUN apt-get update && apt-get install -y \
     libgmp-dev \
     g++ \
     default-mysql-client \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
-# Install PHP extensions
+# Install PHP extensions with security considerations
 RUN docker-php-ext-install -j$(nproc) \
     bcmath \
     gd \
@@ -40,14 +41,22 @@ RUN pecl install redis-5.3.7 && docker-php-ext-enable redis
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Create a non-root user for security
+RUN useradd -m -s /bin/bash -u 1000 www-data
+
 # Set working directory
 WORKDIR /var/www/html
 
-# Set permissions
-RUN usermod -u 1000 www-data
+# Set permissions properly
+RUN chown -R www-data:www-data /var/www/html \
+    && chown -R www-data:www-data /usr/local/etc/php \
+    && chown -R www-data:www-data /var/log/php
 
 # Expose port
 EXPOSE 9000
+
+# Security: Use non-root user
+USER www-data
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
