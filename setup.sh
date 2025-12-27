@@ -104,16 +104,43 @@ docker-compose -f docker-compose.staging.yml up -d --build || {
     exit 1
 }
 
-# Wait for databases to be ready
-print_status "Waiting for databases to be ready..."
+# Wait for services to be running before checking database
+print_status "Waiting for database containers to start..."
+sleep 15
+
+# Check if containers are running
+print_status "Checking if database containers are running..."
+if ! docker ps | grep -q live_wordpress_db; then
+    print_error "Live database container is not running"
+    docker-compose -f docker-compose.live.yml logs live-db
+    exit 1
+fi
+
+if ! docker ps | grep -q staging_wordpress_db; then
+    print_error "Staging database container is not running"
+    docker-compose -f docker-compose.staging.yml logs staging-db
+    exit 1
+fi
+
+# Wait for databases to be ready with extended timeout
+print_status "Waiting for databases to be ready (this may take a few minutes)..."
 sleep 10
-timeout 120 bash -c 'until docker exec live_wordpress_db mysql -u"$LIVE_DB_USER" -p"$LIVE_DB_PASSWORD" -e "SELECT 1;" > /dev/null 2>&1; do echo "Waiting for Live database..."; sleep 5; done' || {
+
+# Check Live database connectivity with extended timeout
+print_status "Checking Live database readiness..."
+timeout 300 bash -c 'while ! docker exec live_wordpress_db mysqladmin ping -u"$LIVE_DB_USER" -p"$LIVE_DB_PASSWORD" --silent; do echo "Waiting for Live database..."; sleep 10; done' || {
     print_error "Live database did not become ready in time"
+    print_status "Displaying Live database logs:"
+    docker-compose -f docker-compose.live.yml logs live-db
     exit 1
 }
 
-timeout 120 bash -c 'until docker exec staging_wordpress_db mysql -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" -e "SELECT 1;" > /dev/null 2>&1; do echo "Waiting for Staging database..."; sleep 5; done' || {
+# Check Staging database connectivity with extended timeout
+print_status "Checking Staging database readiness..."
+timeout 300 bash -c 'while ! docker exec staging_wordpress_db mysqladmin ping -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" --silent; do echo "Waiting for Staging database..."; sleep 10; done' || {
     print_error "Staging database did not become ready in time"
+    print_status "Displaying Staging database logs:"
+    docker-compose -f docker-compose.staging.yml logs staging-db
     exit 1
 }
 

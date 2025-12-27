@@ -21,7 +21,7 @@ max_connections = 100
 max_connect_errors = 100000
 wait_timeout = 600
 interactive_timeout = 600
-connect_timeout = 10
+connect_timeout = 30  # Increased from default
 
 # Query cache (disabled for MariaDB 10.1+)
 query_cache_type = 0
@@ -53,3 +53,8 @@ thread_cache_size = 16
 
 # Security
 local-infile = 0
+
+# Network settings for better connection handling
+max_allowed_packet = 64M
+net_read_timeout = 30
+net_write_timeout = 60
