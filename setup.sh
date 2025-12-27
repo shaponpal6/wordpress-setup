@@ -90,14 +90,6 @@ docker build -t wordpress-php:7.4.33 -f Dockerfile.php . || {
     exit 1
 }
 
-# Start Proxy services (including Adminer)
-print_status "Starting Nginx Proxy services and Adminer..."
-docker-compose -f docker-compose.proxy.yml down --remove-orphans || true
-docker-compose -f docker-compose.proxy.yml up -d --build || {
-    print_error "Failed to start Proxy services"
-    exit 1
-}
-
 # Start Live services
 print_status "Starting Live WordPress services..."
 docker-compose -f docker-compose.live.yml up -d --build || {
@@ -187,6 +179,13 @@ if [[ "$STAGING_DB_STATUS" != "healthy" ]]; then
     exit 1
 fi
 
+# Start Proxy services (including Adminer) - now that networks exist
+print_status "Starting Nginx Proxy services and Adminer..."
+docker-compose -f docker-compose.proxy.yml down --remove-orphans || true
+docker-compose -f docker-compose.proxy.yml up -d --build || {
+    print_warning "Could not start Proxy services, but continuing setup..."
+}
+
 # Install Live WordPress
 print_status "Installing Live WordPress 6.8.3..."
 docker-compose -f docker-compose.live.yml exec live-php-fpm bash -c 'cd /var/www/html && /bin/bash /var/www/html/init-wordpress-live.sh' || {
@@ -219,11 +218,11 @@ docker-compose -f docker-compose.staging.yml exec staging-php-fpm wp plugin acti
 # Optimize WordPress for both environments
 print_status "Optimizing Live WordPress settings..."
 docker-compose -f docker-compose.live.yml exec live-php-fpm wp config set WP_CACHE true --raw --allow-root --path=/var/www/html || true
-docker-compose -f docker-compose.live.yml exec live-php-fpm wp config set WP_REDIS_HOST redis --allow-root --path=/var/www/html || true
+docker-compose -f docker-compose.live.yml exec live-php-fpm wp config set WP_REDIS_HOST live-redis --allow-root --path=/var/www/html || true
 
 print_status "Optimizing Staging WordPress settings..."
 docker-compose -f docker-compose.staging.yml exec staging-php-fpm wp config set WP_CACHE true --raw --allow-root --path=/var/www/html || true
-docker-compose -f docker-compose.staging.yml exec staging-php-fpm wp config set WP_REDIS_HOST redis --allow-root --path=/var/www/html || true
+docker-compose -f docker-compose.staging.yml exec staging-php-fpm wp config set WP_REDIS_HOST staging-redis --allow-root --path=/var/www/html || true
 
 # Create initial backups
 print_status "Creating initial Live backup..."

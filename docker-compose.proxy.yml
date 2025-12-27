@@ -12,12 +12,9 @@ services:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./config/nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./ssl:/etc/ssl/certs
-      - /var/www/wordpress-live:/var/www/html/live
-      - /var/www/wordpress-staging:/var/www/html/staging
       - ./logs/nginx:/var/log/nginx
     networks:
-      - live_network
-      - staging_network
+      - proxy_network
     healthcheck:
       test: ["CMD", "service", "nginx", "status"]
       timeout: 20s
@@ -33,14 +30,10 @@ services:
     environment:
       - ADMINER_DESIGN=nette
     networks:
-      - live_network
-      - staging_network
+      - proxy_network
 
 
 networks:
-  live_network:
-    name: live_wordpress_network
-    external: true
-  staging_network:
-    name: staging_wordpress_network
-    external: true
+  proxy_network:
+    name: wordpress_proxy_network
+    driver: bridge
