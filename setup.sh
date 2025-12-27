@@ -132,28 +132,52 @@ if ! docker-compose -f docker-compose.staging.yml ps | grep -q "staging_wordpres
     exit 1
 fi
 
-# Wait for databases to be ready with extended timeout
-print_status "Waiting for databases to be ready (this may take a few minutes)..."
-sleep 20
+# Wait for databases to be healthy
+print_status "Waiting for databases to be healthy (this may take a few minutes)..."
+for i in {1..30}; do
+    LIVE_DB_STATUS=$(docker-compose -f docker-compose.live.yml ps --health live-db | grep -v "health" | awk '{print $NF}' 2>/dev/null || echo "unknown")
+    STAGING_DB_STATUS=$(docker-compose -f docker-compose.staging.yml ps --health staging-db | grep -v "health" | awk '{print $NF}' 2>/dev/null || echo "unknown")
+    
+    if [[ "$LIVE_DB_STATUS" == "healthy" ]]; then
+        print_status "Live database is healthy"
+        break
+    elif [[ "$LIVE_DB_STATUS" == "unhealthy" ]]; then
+        print_error "Live database is unhealthy"
+        docker-compose -f docker-compose.live.yml logs live-db
+        exit 1
+    fi
+    
+    echo "Waiting for Live database to be healthy... ($i/30)"
+    sleep 10
+done
 
-# Check Live database connectivity with extended timeout
-# Using mysql command instead of mysqladmin since mysqladmin might not be available
-print_status "Checking Live database readiness..."
-timeout 600 bash -c 'while ! docker exec live_wordpress_db mysql -u"$LIVE_DB_USER" -p"$LIVE_DB_PASSWORD" -e "SELECT 1;" --silent > /dev/null 2>&1; do echo "Waiting for Live database..."; sleep 15; done' || {
-    print_error "Live database did not become ready in time"
+if [[ "$LIVE_DB_STATUS" != "healthy" ]]; then
+    print_error "Live database did not become healthy in time"
     print_status "Displaying Live database logs:"
     docker-compose -f docker-compose.live.yml logs live-db
     exit 1
-}
+fi
 
-# Check Staging database connectivity with extended timeout
-print_status "Checking Staging database readiness..."
-timeout 600 bash -c 'while ! docker exec staging_wordpress_db mysql -u"$STAGING_DB_USER" -p"$STAGING_DB_PASSWORD" -e "SELECT 1;" --silent > /dev/null 2>&1; do echo "Waiting for Staging database..."; sleep 15; done' || {
-    print_error "Staging database did not become ready in time"
+for i in {1..30}; do
+    if [[ "$STAGING_DB_STATUS" == "healthy" ]]; then
+        print_status "Staging database is healthy"
+        break
+    elif [[ "$STAGING_DB_STATUS" == "unhealthy" ]]; then
+        print_error "Staging database is unhealthy"
+        docker-compose -f docker-compose.staging.yml logs staging-db
+        exit 1
+    fi
+    
+    echo "Waiting for Staging database to be healthy... ($i/30)"
+    sleep 10
+done
+
+if [[ "$STAGING_DB_STATUS" != "healthy" ]]; then
+    print_error "Staging database did not become healthy in time"
     print_status "Displaying Staging database logs:"
     docker-compose -f docker-compose.staging.yml logs staging-db
     exit 1
-}
+fi
 
 # Install Live WordPress
 print_status "Installing Live WordPress 6.8.3..."

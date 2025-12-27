@@ -21,9 +21,11 @@ services:
     security_opt:
       - no-new-privileges:true
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
       retries: 10
+      start_period: 60s
 
   # Staging PHP-FPM with PHP 7.4.33
   staging-php-fpm:
@@ -61,7 +63,7 @@ services:
     container_name: staging_phpmyadmin
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8082:80"  # Bind to localhost only for security
+      - "127.0.0.0:8082:80"  # Bind to localhost only for security
     environment:
       - PMA_HOST=staging-db
       - PMA_USER=${STAGING_DB_USER}
