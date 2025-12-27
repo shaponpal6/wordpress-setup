@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# WordPress Services Restart Script
+# WordPress Services Restart Script for Acme Revival
+# Server: 199.19.74.239, Domain: acmerevival.com
 # Safely restarts services without impacting live data
 set -e
 
@@ -12,7 +13,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}================================${NC}"
-echo -e "${BLUE}WordPress Services Restart Script${NC}"
+echo -e "${BLUE}Acme Revival Services Restart Script${NC}"
+echo -e "${BLUE}Server: 199.19.74.239 | Domain: acmerevival.com${NC}"
 echo -e "${BLUE}================================${NC}"
 echo ""
 
@@ -119,4 +121,5 @@ echo -e "  ${YELLOW}./health-check-live.sh${NC}    - Check live environment heal
 echo -e "  ${YELLOW}./health-check-staging.sh${NC} - Check staging environment health"
 echo -e "  ${YELLOW}./monitor.sh${NC}              - Monitor all services"
 echo ""
-print_status "Services have been restarted safely. Data volumes were preserved during restart."
+print_status "Acme Revival services have been restarted safely on server 199.19.74.239."
+print_status "Data volumes were preserved during restart."

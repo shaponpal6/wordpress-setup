@@ -20,6 +20,14 @@ This repository contains a complete Docker-based WordPress setup that replicates
 - Domain names for live and staging sites
 - At least 4GB RAM and 20GB disk space
 
+## Server Configuration
+
+- **Server IP**: 199.19.74.239
+- **Server Host**: 199-19-74-239.cloud-xip.com
+- **Server ID**: fbbcb6f8-4252-472e-ad12-406242d2d889
+- **Live Domain**: https://acmerevival.com/
+- **Testing Access**: Using IP address until DNS is configured
+
 ## Setup Instructions
 
 ### 1. Clone and Prepare the Repository
@@ -41,23 +49,13 @@ Edit the `.env` file to set your specific configuration:
 nano .env
 ```
 
-Update the following values:
-- `LIVE_SITE_URL`: Your live domain (e.g., `yourdomain.com`)
-- `STAGING_SITE_URL`: Your staging domain (e.g., `staging.yourdomain.com`)
-- Update all passwords with strong, unique values
-- Update email addresses for notifications
+Your configuration is already set with:
+- `LIVE_SITE_URL`: acmerevival.com
+- `STAGING_SITE_URL`: staging.acmerevival.com
+- Strong passwords are configured
+- Contact email: contact@acmerevival.com
 
-### 3. Configure Nginx
-
-Edit the nginx configuration to use your actual domains:
-
-```bash
-nano config/nginx/default.conf
-```
-
-Replace `live.example.com` and `staging.example.com` with your actual domain names.
-
-### 4. Initial Setup
+### 3. Initial Setup
 
 Run the main setup script to install both environments:
 
@@ -72,18 +70,18 @@ This will:
 - Set up Redis caching
 - Create initial backups
 
-### 5. Configure DNS
+### 4. Configure DNS (For Production)
 
 Point your domain names to your VPS IP address:
-- A record for your live domain
-- A record for your staging domain
+- A record for acmerevival.com → 199.19.74.239
+- A record for staging.acmerevival.com → 199.19.74.239
 
-### 6. SSL Certificate Setup
+### 5. SSL Certificate Setup
 
 After DNS propagation, set up SSL certificates:
 
 ```bash
-./setup-ssl.sh your-live-domain.com staging.your-domain.com youremail@example.com
+./setup-ssl.sh acmerevival.com staging.acmerevival.com contact@acmerevival.com
 ```
 
 ## Management Scripts
@@ -102,22 +100,22 @@ After DNS propagation, set up SSL certificates:
 
 ### Logging & Monitoring
 - Centralized logging with Elasticsearch, Logstash, and Kibana
-- Access Kibana at `http://your-vps-ip:5601`
+- Access Kibana at `http://199.19.74.239:5601`
 
 ## Service Access
 
 ### Web Access
-- **Live Site**: `http://your-live-domain.com` or `https://your-live-domain.com`
-- **Staging Site**: `http://staging.your-domain.com` or `https://staging.your-domain.com`
-- **Live Admin**: `http://your-live-domain.com/wp-admin`
-- **Staging Admin**: `http://staging.your-domain.com/wp-admin`
+- **Live Site**: `http://199.19.74.239` or `https://acmerevival.com` (after DNS)
+- **Staging Site**: `http://199.19.74.239:8080` or `https://staging.acmerevival.com` (after DNS)
+- **Live Admin**: `http://199.19.74.239/wp-admin` or `https://acmerevival.com/wp-admin`
+- **Staging Admin**: `http://199.19.74.239:8080/wp-admin` or `https://staging.acmerevival.com/wp-admin`
 
 ### Database Access
-- **Live phpMyAdmin**: `http://your-vps-ip:8081`
-- **Staging phpMyAdmin**: `http://your-vps-ip:8082`
+- **Live phpMyAdmin**: `http://199.19.74.239:8081`
+- **Staging phpMyAdmin**: `http://199.19.74.239:8082`
 
 ### Monitoring
-- **Kibana (Logging)**: `http://your-vps-ip:5601`
+- **Kibana (Logging)**: `http://199.19.74.239:5601`
 - **Health Checks**: Run `./health-check-live.sh` or `./health-check-staging.sh`
 
 ## Docker Compose Files

@@ -3,6 +3,7 @@
 # Production WordPress Docker Setup Script with Live and Staging Environments
 # This script sets up a complete WordPress environment matching your shared hosting configuration
 # PHP 7.4.33, MariaDB 11.4.9, WordPress 6.8.3 for both live and staging
+# Server Configuration: IP 199.19.74.239, Host 199-19-74-239.cloud-xip.com, Domain acmerevival.com
 
 set -e
 
@@ -14,7 +15,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}==============================================${NC}"
-echo -e "${BLUE}WordPress Docker Production Setup with Staging${NC}"
+echo -e "${BLUE}WordPress Docker Production Setup - Acme Revival${NC}"
+echo -e "${BLUE}Server: 199.19.74.239 | Domain: acmerevival.com${NC}"
 echo -e "${BLUE}==============================================${NC}"
 echo ""
 echo -e "This script will set up a production-ready WordPress environment"
@@ -22,6 +24,8 @@ echo -e "with both LIVE and STAGING environments matching your current shared ho
 echo -e "- PHP 7.4.33"
 echo -e "- MariaDB 11.4.9"
 echo -e "- WordPress 6.8.3"
+echo -e "- Live Domain: acmerevival.com"
+echo -e "- Staging Domain: staging.acmerevival.com"
 echo ""
 
 # Function to print colored output
@@ -68,7 +72,7 @@ mkdir -p config/nginx config/php config/mariadb config/security logs/nginx logs/
 
 # Make all scripts executable
 print_status "Setting executable permissions..."
-chmod +x init-wordpress-live.sh init-wordpress-staging.sh backup-live.sh backup-staging.sh setup-ssl.sh monitor.sh
+chmod +x init-wordpress-live.sh init-wordpress-staging.sh backup-live.sh backup-staging.sh setup-ssl.sh monitor.sh health-check-live.sh health-check-staging.sh restart-services.sh
 
 # Build the PHP image
 print_status "Building PHP-FPM image with PHP 7.4.33..."
@@ -153,16 +157,17 @@ print_status "Creating initial Staging backup..."
 echo ""
 echo -e "${GREEN}================================================${NC}"
 echo -e "${GREEN}WordPress Setup with Live and Staging Completed!${NC}"
+echo -e "${GREEN}Server: 199.19.74.239 | Domain: acmerevival.com${NC}"
 echo -e "${GREEN}================================================${NC}"
 echo ""
 echo -e "${BLUE}Your WordPress sites are now running!${NC}"
 echo ""
-echo -e "Live site at: ${GREEN}http://live.example.com${NC} (update your .env and nginx config)"
-echo -e "Staging site at: ${GREEN}http://staging.example.com${NC} (update your .env and nginx config)"
+echo -e "Live site at: ${GREEN}http://199.19.74.239${NC} (or https://acmerevival.com after DNS)"
+echo -e "Staging site at: ${GREEN}http://199.19.74.239:8080${NC} (or https://staging.acmerevival.com after DNS)"
 echo ""
 echo -e "Default login credentials for both sites:"
 echo -e "  Username: ${GREEN}admin${NC}"
-echo -e "  Password: ${GREEN}admin_password${NC}"
+echo -e "  Password: ${GREEN}SecureAdminPassword123!${NC} (for live), ${GREEN}SecureStagingPassword123!${NC} (for staging)"
 echo ""
 echo -e "To change credentials, edit the .env file and reinstall WordPress."
 echo ""
@@ -171,6 +176,7 @@ echo -e "  ${YELLOW}./backup-live.sh${NC}          - Create a backup of your Liv
 echo -e "  ${YELLOW}./backup-staging.sh${NC}       - Create a backup of your Staging site"
 echo -e "  ${YELLOW}./setup-ssl.sh domain email${NC} - Setup SSL with Let's Encrypt"
 echo -e "  ${YELLOW}./monitor.sh${NC}              - Monitor your WordPress installations"
+echo -e "  ${YELLOW}./restart-services.sh${NC}     - Safely restart services"
 echo -e "  ${YELLOW}docker-compose -f docker-compose.live.yml logs -f${NC}    - View Live logs"
 echo -e "  ${YELLOW}docker-compose -f docker-compose.staging.yml logs -f${NC} - View Staging logs"
 echo -e "  ${YELLOW}docker-compose -f docker-compose.live.yml down${NC}       - Stop Live services"
@@ -178,11 +184,11 @@ echo -e "  ${YELLOW}docker-compose -f docker-compose.staging.yml down${NC}    - 
 echo -e "  ${YELLOW}docker-compose -f docker-compose.live.yml up -d${NC}      - Start Live services"
 echo -e "  ${YELLOW}docker-compose -f docker-compose.staging.yml up -d${NC}   - Start Staging services"
 echo ""
-echo -e "For production use, please:"
-echo -e "1. Update the .env file with your actual domain names and passwords"
-echo -e "2. Update the nginx configuration with your actual domain names"
-echo -e "3. Set up SSL with your domains using: ./setup-ssl.sh yourdomain.com youremail@example.com"
-echo -e "4. Update WordPress settings to use your actual domains"
-echo -e "5. Configure your firewall to allow ports 80 and 443"
+echo -e "For production use:"
+echo -e "1. Configure DNS: Point acmerevival.com and staging.acmerevival.com to 199.19.74.239"
+echo -e "2. Set up SSL with your domains using: ./setup-ssl.sh acmerevival.com staging.acmerevival.com contact@acmerevival.com"
+echo -e "3. Update WordPress settings to use your actual domains"
+echo -e "4. Configure your firewall to allow ports 80 and 443"
 echo ""
-print_status "Setup completed successfully!"
+print_status "Setup completed successfully! Your Acme Revival sites are ready for testing."
+print_status "Access your sites using the IP address until DNS is configured."

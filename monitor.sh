@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# WordPress Docker Monitoring Script for Live and Staging
+# WordPress Docker Monitoring Script for Acme Revival
+# Server: 199.19.74.239, Domain: acmerevival.com
+# Live & Staging Environment Monitoring
 
-echo "WordPress Docker Environment Monitoring - Live & Staging"
+echo "Acme Revival WordPress Docker Environment Monitoring"
+echo "Server: 199.19.74.239 | Domain: acmerevival.com"
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
@@ -97,8 +100,8 @@ echo ""
 echo "=== WordPress Site Status ==="
 # Note: This would require actual domain configuration to test
 echo "Please check your configured domains for Live and Staging sites"
-echo "Live: Check http://live.yourdomain.com"
-echo "Staging: Check http://staging.yourdomain.com"
+echo "Live: Check http://199.19.74.239 (or http://acmerevival.com after DNS)"
+echo "Staging: Check http://199.19.74.239:8080 (or http://staging.acmerevival.com after DNS)"
 
 echo ""
-echo "Monitoring completed!"
+echo "Monitoring completed for Acme Revival server 199.19.74.239!"
