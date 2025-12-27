@@ -14,7 +14,7 @@ services:
       - MYSQL_ROOT_PASSWORD=${STAGING_DB_ROOT_PASSWORD}
     volumes:
       - staging_db_data:/var/lib/mysql
-      - ./config/mariadb:/etc/mysql/conf.d
+      - /etc/wordpress/config/mariadb:/etc/mysql/conf.d
     networks:
       - staging_network
     security_opt:
@@ -39,10 +39,10 @@ services:
       - WORDPRESS_DB_PASSWORD=${STAGING_DB_PASSWORD}
     volumes:
       - staging_wordpress_data:/var/www/html
-      - ./wp-content-staging:/var/www/html/wp-content
-      - ./config/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
-      - ./config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
-      - ./logs/php-staging:/var/log/php
+      - /var/www/wordpress-staging/wp-content:/var/www/html/wp-content
+      - /etc/wordpress/config/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - /etc/wordpress/config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - /var/log/wordpress/php-staging:/var/log/php
     networks:
       - staging_network
     security_opt:
@@ -76,8 +76,11 @@ services:
 
 volumes:
   staging_db_data:
+    name: staging_wordpress_db_data
   staging_wordpress_data:
+    name: staging_wordpress_html_data
 
 networks:
   staging_network:
+    name: staging_wordpress_network
     driver: bridge

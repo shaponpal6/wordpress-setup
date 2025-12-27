@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Live WordPress Backup Script
+# Live WordPress Backup Script for Acme Revival
+# Server: 199.19.74.239, Domain: acmerevival.com
+# All data stored in external directories for persistence after project deletion
 set -e
 
 BACKUP_DIR="/backups/live"
@@ -35,6 +37,8 @@ WordPress Version: 6.8.3
 PHP Version: 7.4.33
 MariaDB Version: 11.4.9
 Environment: Live
+Server: 199.19.74.239
+Domain: acmerevival.com
 EOF
 
 echo "Live backup completed! Files saved to: $BACKUP_DIR"

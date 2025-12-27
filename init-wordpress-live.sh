@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# Live WordPress Initialization Script
+# Live WordPress Initialization Script for Acme Revival
+# Server: 199.19.74.239, Domain: acmerevival.com
+# All data stored in external directories for persistence after project deletion
 set -e
 
 echo "Starting Live WordPress initialization..."

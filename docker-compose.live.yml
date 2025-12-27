@@ -14,7 +14,7 @@ services:
       - MYSQL_ROOT_PASSWORD=${LIVE_DB_ROOT_PASSWORD}
     volumes:
       - live_db_data:/var/lib/mysql
-      - ./config/mariadb:/etc/mysql/conf.d
+      - /etc/wordpress/config/mariadb:/etc/mysql/conf.d
     networks:
       - live_network
     security_opt:
@@ -39,10 +39,10 @@ services:
       - WORDPRESS_DB_PASSWORD=${LIVE_DB_PASSWORD}
     volumes:
       - live_wordpress_data:/var/www/html
-      - ./wp-content-live:/var/www/html/wp-content
-      - ./config/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
-      - ./config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
-      - ./logs/php-live:/var/log/php
+      - /var/www/wordpress-live/wp-content:/var/www/html/wp-content
+      - /etc/wordpress/config/php/php.ini:/usr/local/etc/php/conf.d/custom.ini
+      - /etc/wordpress/config/php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - /var/log/wordpress/php-live:/var/log/php
     networks:
       - live_network
     security_opt:
@@ -76,8 +76,11 @@ services:
 
 volumes:
   live_db_data:
+    name: live_wordpress_db_data
   live_wordpress_data:
+    name: live_wordpress_html_data
 
 networks:
   live_network:
+    name: live_wordpress_network
     driver: bridge

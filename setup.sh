@@ -4,6 +4,7 @@
 # This script sets up a complete WordPress environment matching your shared hosting configuration
 # PHP 7.4.33, MariaDB 11.4.9, WordPress 6.8.3 for both live and staging
 # Server Configuration: IP 199.19.74.239, Host 199-19-74-239.cloud-xip.com, Domain acmerevival.com
+# All data stored in external directories for persistence after project deletion
 
 set -e
 
@@ -17,6 +18,7 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}==============================================${NC}"
 echo -e "${BLUE}WordPress Docker Production Setup - Acme Revival${NC}"
 echo -e "${BLUE}Server: 199.19.74.239 | Domain: acmerevival.com${NC}"
+echo -e "${BLUE}Data stored in external directories for persistence${NC}"
 echo -e "${BLUE}==============================================${NC}"
 echo ""
 echo -e "This script will set up a production-ready WordPress environment"
@@ -73,13 +75,13 @@ fi
 
 print_status "Docker and Docker Compose are installed."
 
-# Create necessary directories and volumes
-print_status "Creating volume directories..."
-./create-volumes.sh
+# Create external directories
+print_status "Creating external directories for persistent data..."
+./setup-external-dirs.sh
 
 # Make all scripts executable
 print_status "Setting executable permissions..."
-chmod +x init-wordpress-live.sh init-wordpress-staging.sh backup-live.sh backup-staging.sh setup-ssl.sh monitor.sh health-check-live.sh health-check-staging.sh restart-services.sh create-volumes.sh
+chmod +x init-wordpress-live.sh init-wordpress-staging.sh backup-live.sh backup-staging.sh setup-ssl.sh monitor.sh health-check-live.sh health-check-staging.sh restart-services.sh setup-external-dirs.sh
 
 # Build the PHP image
 print_status "Building PHP-FPM image with PHP 7.4.33..."
@@ -170,6 +172,7 @@ echo ""
 echo -e "${GREEN}================================================${NC}"
 echo -e "${GREEN}WordPress Setup with Live and Staging Completed!${NC}"
 echo -e "${GREEN}Server: 199.19.74.239 | Domain: acmerevival.com${NC}"
+echo -e "${GREEN}Data stored in external directories for persistence${NC}"
 echo -e "${GREEN}================================================${NC}"
 echo ""
 echo -e "${BLUE}Your WordPress sites are now running!${NC}"
@@ -207,3 +210,4 @@ echo ""
 print_status "Setup completed successfully! Your Acme Revival sites are ready for testing."
 print_status "Access your sites using the IP address until DNS is configured."
 print_status "Security and performance improvements have been applied."
+print_status "All data is stored in external directories and will persist after project deletion."
