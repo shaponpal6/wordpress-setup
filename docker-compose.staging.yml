@@ -57,26 +57,6 @@ services:
       timeout: 20s
       retries: 10
 
-  # Staging phpMyAdmin
-  staging-phpmyadmin:
-    image: phpmyadmin:latest
-    container_name: staging_phpmyadmin
-    restart: unless-stopped
-    ports:
-      - "127.0.0.0:8082:80"  # Bind to localhost only for security
-    environment:
-      - PMA_HOST=staging-db
-      - PMA_USER=${STAGING_DB_USER}
-      - PMA_PASSWORD=${STAGING_DB_PASSWORD}
-      - MYSQL_ROOT_PASSWORD=${STAGING_DB_ROOT_PASSWORD}
-      - PMA_ABSOLUTE_URI=http://199.19.74.239:8082  # Specify absolute URI for security
-    networks:
-      - staging_network
-    depends_on:
-      - staging-db
-    security_opt:
-      - no-new-privileges:true
-
 volumes:
   staging_db_data:
     name: staging_wordpress_db_data
@@ -86,4 +66,4 @@ volumes:
 networks:
   staging_network:
     name: staging_wordpress_network
-    driver: bridge
+    external: true

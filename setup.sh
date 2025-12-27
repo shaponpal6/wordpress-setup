@@ -90,6 +90,14 @@ docker build -t wordpress-php:7.4.33 -f Dockerfile.php . || {
     exit 1
 }
 
+# Start Proxy services (including Adminer)
+print_status "Starting Nginx Proxy services and Adminer..."
+docker-compose -f docker-compose.proxy.yml down --remove-orphans || true
+docker-compose -f docker-compose.proxy.yml up -d --build || {
+    print_error "Failed to start Proxy services"
+    exit 1
+}
+
 # Start Live services
 print_status "Starting Live WordPress services..."
 docker-compose -f docker-compose.live.yml up -d --build || {
