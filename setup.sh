@@ -97,6 +97,7 @@ docker build -t wordpress-php:7.4.33 -f Dockerfile.php . || {
 
 # Start Proxy services
 print_status "Starting Nginx Proxy services..."
+docker-compose -f docker-compose.proxy.yml down --remove-orphans || true
 docker-compose -f docker-compose.proxy.yml up -d --build || {
     print_error "Failed to start Proxy services"
     exit 1
@@ -104,6 +105,7 @@ docker-compose -f docker-compose.proxy.yml up -d --build || {
 
 # Start Live services
 print_status "Starting Live WordPress services..."
+docker-compose -f docker-compose.live.yml down --remove-orphans || true
 docker-compose -f docker-compose.live.yml up -d --build || {
     print_error "Failed to start Live services"
     exit 1
@@ -111,6 +113,7 @@ docker-compose -f docker-compose.live.yml up -d --build || {
 
 # Start Staging services
 print_status "Starting Staging WordPress services..."
+docker-compose -f docker-compose.staging.yml down --remove-orphans || true
 docker-compose -f docker-compose.staging.yml up -d --build || {
     print_error "Failed to start Staging services"
     exit 1
