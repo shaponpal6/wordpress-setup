@@ -44,8 +44,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Set permissions properly
-RUN chown -R www-data:www-data /var/www/html \
+# Create necessary directories and set permissions properly
+RUN mkdir -p /var/log/php \
+    && chown -R www-data:www-data /var/www/html \
     && chown -R www-data:www-data /usr/local/etc/php \
     && chown -R www-data:www-data /var/log/php
 
